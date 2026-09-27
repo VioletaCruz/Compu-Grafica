@@ -221,8 +221,16 @@ GLint TextureFromFile(const char *path, string directory)
 
 	// Assign texture to ID
 	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// 1. Indicar que las filas no tienen relleno de 4 bytes
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// 2. Subir la imagen a la GPU
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// (Opcional pero recomendable) Restaurar el alineamiento por defecto
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

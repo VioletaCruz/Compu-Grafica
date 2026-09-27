@@ -1,6 +1,6 @@
-// Previo #6
+// Practica #6
 // Cruz Herrera Jocelyn Violeta
-// Fecha de entrega: 21 de septiembre del 2026
+// Fecha de entrega: 26 de septiembre del 2026
 // No. cuenta: 320202238
 
 // Std. Includes
@@ -59,7 +59,7 @@ int main( )
     glfwWindowHint( GLFW_RESIZABLE, GL_FALSE );
     
     // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow *window = glfwCreateWindow( WIDTH, HEIGHT, "Previo #6 Jocelyn Cruz", nullptr, nullptr );
+    GLFWwindow *window = glfwCreateWindow( WIDTH, HEIGHT, "Practica #6 Jocelyn Cruz", nullptr, nullptr );
     
     if ( nullptr == window )
     {
@@ -101,6 +101,9 @@ int main( )
     // Load models
     Model dog((char*)"Models/RedDog.obj");
     Model planta((char*)"Models/planta.obj");
+    Model mesita((char*)"Models/round table Ultimate(free Final).obj");
+    Model periodico((char*)"Models/Newspaper.obj");
+    Model wc((char*)"Models/WC.obj");
     glm::mat4 projection = glm::perspective( camera.GetZoom( ), ( float )SCREEN_WIDTH/( float )SCREEN_HEIGHT, 0.1f, 100.0f );
     
     // Game loop
@@ -130,15 +133,25 @@ int main( )
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         dog.Draw(shader);
 
-        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        dog.Draw(shader);
-
-        model = glm::translate(model, glm::vec3(-3.0f, -0.2f, 0.0f));
+        model = glm::translate(model, glm::vec3(0.63f, -1.3f, -0.3f));
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        wc.Draw(shader);
+
+        model = glm::translate(model, glm::vec3(1.2f, 1.6f, 7.9f));
+        model = glm::scale(model, glm::vec3(1.0f, 3.0f, 1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        mesita.Draw(shader);
+
+        model = glm::translate(model, glm::vec3(0.0f, 1.4f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.7f, 0.3f, 0.8f));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         planta.Draw(shader);
+
+        model = glm::translate(model, glm::vec3(-5.0f, -4.5f, -2.5f));
+        model = glm::scale(model, glm::vec3(7.0f, 7.0f, 7.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        periodico.Draw(shader);
 
         // Swap the buffers
         glfwSwapBuffers( window );
