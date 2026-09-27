@@ -100,10 +100,10 @@ int main( )
     
     // Load models
     Model dog((char*)"Models/RedDog.obj");
-    Model planta((char*)"Models/planta.obj");
-    Model mesita((char*)"Models/round table Ultimate(free Final).obj");
-    Model periodico((char*)"Models/Newspaper.obj");
     Model wc((char*)"Models/WC.obj");
+    Model mesita((char*)"Models/round table Ultimate(free Final).obj");
+    Model planta((char*)"Models/planta.obj");
+    Model periodico((char*)"Models/Newspaper.obj");
     glm::mat4 projection = glm::perspective( camera.GetZoom( ), ( float )SCREEN_WIDTH/( float )SCREEN_HEIGHT, 0.1f, 100.0f );
     
     // Game loop
