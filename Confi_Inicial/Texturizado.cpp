@@ -1,4 +1,4 @@
-// Previo #7
+// Práctica #7
 // Cruz Herrera Jocelyn Violeta
 // Fecha de entrega: 28 de septiembre del 2026
 // No. cuenta: 320202238
@@ -61,7 +61,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Previo #7 Jocelyn Cruz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica #7 Jocelyn Cruz", nullptr, nullptr);
 
 	if (nullptr == window)
 	{
@@ -102,22 +102,58 @@ int main()
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
-	GLfloat vertices[] =
-	{
-		// Positions            // Colors              // Texture Coords
-		-0.5f, -0.5f, 0.0f,    1.0f, 1.0f,1.0f,		0.0f,0.0f,
-		0.5f, -0.5f, 0.0f,	   1.0f, 1.0f,1.0f,		1.0f,0.0f,
-		0.5f,  0.5f, 0.0f,     1.0f, 1.0f,1.0f,	    1.0f,1.0f,
-		-0.5f,  0.5f, 0.0f,    1.0f, 1.0f,1.0f,		0.0f,1.0f,
+	GLfloat vertices[] = {
+		// Positions          // Colors           // Texture Coords
+		// Cara Frontal (Z = 0.5f)
+		-0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.25f,
+		 0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.25f,
+		 0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.5f,
+		-0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.5f,
 
-		
+		// Cara Trasera (Z = -0.5f)
+		 0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.25f,
+		-0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.25f, 0.25f,
+		-0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.25f, 0.5f,
+		 0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.0f, 0.5f,
+
+		 // Cara Izquierda (X = -0.5f)
+		 -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.25f, 0.25f,
+		 -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.25f,
+		 -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.5f,
+		 -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.25f, 0.5f,
+
+		 // Cara Derecha (X = 0.5f)
+		  0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.25f,
+		  0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.25f,
+		  0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   1.0f, 0.5f,
+		  0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.5f,
+
+		  // Cara Superior (Y = 0.5f)
+		  -0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.5f,
+		   0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.5f,
+		   0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.75f,
+		  -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.75f,
+
+		  // Cara Inferior (Y = -0.5f)
+		  -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.0f,
+		   0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.0f,
+		   0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.75f, 0.25f,
+		  -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   0.5f, 0.25f
 	};
 
-	GLuint indices[] =
-	{  // Note that we start from 0!
-		0,1,3,
-		1,2,3
-	
+	GLuint indices[] = {
+		// Frontal
+		0, 1, 2,  2, 3, 0,
+		// Trasera
+		4, 5, 6,  6, 7, 4,
+		// Izquierda
+		8, 9, 10,  10, 11, 8,
+		// Derecha
+		12, 13, 14,  14, 15, 12,
+		// Superior
+		16, 17, 18,  18, 19, 16,
+		// Inferior
+		20, 21, 22,  22, 23, 20
 	};
 
 	// First, set the container's VAO (and VBO)
@@ -156,7 +192,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	// Diffuse map
-	image = stbi_load("images/polaroid.png", &textureWidth, &textureHeight, &nrChannels,0);
+	image = stbi_load("images/dado.png", &textureWidth, &textureHeight, &nrChannels,0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -211,7 +247,8 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		// Draw the light object (using light's vertex attributes)
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glEnable(GL_DEPTH_TEST);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
