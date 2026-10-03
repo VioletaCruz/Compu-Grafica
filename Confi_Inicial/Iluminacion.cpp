@@ -1,6 +1,6 @@
 // Previo #8 
 // Cruz Herrera Jocelyn Violeta
-// Fecha de entrega: 01 de octubre del 2026
+// Fecha de entrega: 02 de octubre del 2026
 // No. Cuneta: 320202238
 
 // Std. Includes
@@ -25,6 +25,7 @@
 // Other Libs
 #include "SOIL2/SOIL2.h"
 #include "stb_image.h"
+
 // Properties
 const GLuint WIDTH = 800, HEIGHT = 600;
 int SCREEN_WIDTH, SCREEN_HEIGHT;
@@ -44,6 +45,7 @@ bool firstMouse = true;
 
 // Light attributes
 glm::vec3 lightPos(0.5f, 0.5f, 2.5f);
+glm::vec3 light2Pos(1.3f, 1.3f, -2.5f);
 float movelightPos = 0.0f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
@@ -215,64 +217,76 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         
-        lightingShader.Use();
-        GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "light.position");
-        GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
-        glUniform3f(lightPosLoc, lightPos.x + movelightPos, lightPos.y + movelightPos, lightPos.z + movelightPos);
-        glUniform3f(viewPosLoc, camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-
-
-        // Set lights properties
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"),0.2f, 0.2f, 0.2f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.9f, 0.9f, 0.9f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 0.7f, 0.7f, 0.7f);
-
+        glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
+
+        // ==========================================
+        // 1. DIBUJAR MODELOS CON ILUMINACIÓN
+        // ==========================================
+        lightingShader.Use();
+
+        // Cámara
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-        // Set material properties
+        // Luz 1 (Móvil)
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.position"), lightPos.x + movelightPos, lightPos.y + movelightPos, lightPos.z + movelightPos);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.9f, 0.9f, 0.9f);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 0.7f, 0.7f, 0.7f);
+
+        // Luz 2 (Fija)
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.position"), light2Pos.x, light2Pos.y, light2Pos.z);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.ambient"), 0.3f, 0.3f, 0.3f);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.diffuse"), 0.8f, 0.8f, 0.8f);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.specular"), 1.0f, 1.0f, 1.0f);
+
+        // Propiedades de material
         glUniform3f(glGetUniformLocation(lightingShader.Program, "material.ambient"), 0.8f, 0.8f, 0.8f);
         glUniform3f(glGetUniformLocation(lightingShader.Program, "material.diffuse"), 0.9f, 0.9f, 0.9f);
         glUniform3f(glGetUniformLocation(lightingShader.Program, "material.specular"), 0.8f, 0.8f, 0.8f);
-        glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 1.0f);
+        glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 32.0f);
 
-
-        // Draw the loaded model
-        glm::mat4 model(1);
+        // Dibujar Red Dog
+        glm::mat4 model(1.0f);
         model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glBindVertexArray(VAO);
-       
         red_dog.Draw(lightingShader);
 
-        model = glm::mat4 (1);
+        // Dibujar Planta
+        model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(2.0f, -1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         planta.Draw(lightingShader);
-        glBindVertexArray(VAO);
 
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
-        
-
-        glBindVertexArray(0);
-
-
-
-
+        // ==========================================
+        // 2. DIBUJAR CUBOS DE LÁMPARAS (Lampshader)
+        // ==========================================
         lampshader.Use();
         glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+
+        glBindVertexArray(VAO);
+
+        // Lámpara 1 (Cubo)
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos + movelightPos);
-        model = glm::scale(model, glm::vec3(0.3f));
+        model = glm::scale(model, glm::vec3(0.25f));
         glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Lámpara 2 (Cubo)
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, light2Pos);
+        model = glm::scale(model, glm::vec3(0.25f));
+        glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glBindVertexArray(0);
 
-        // Swap the buffers
+        // Swap buffers
         glfwSwapBuffers(window);
     }
 
