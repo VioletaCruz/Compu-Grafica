@@ -1,4 +1,4 @@
-// Previo #8 
+// Practica #8 
 // Cruz Herrera Jocelyn Violeta
 // Fecha de entrega: 02 de octubre del 2026
 // No. Cuneta: 320202238
@@ -50,7 +50,10 @@ float movelightPos = 0.0f;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 float rot = 0.0f;
-bool activanim = false;
+bool DIA = true;
+float tiempo = 0.0f;
+float orbita = 4.0f;        // Radio de giro para el sol y la luna
+bool activanim = false;     
 
 int main()
 {
@@ -64,7 +67,7 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Previo #8 Jocelyn Cruz", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica #8 Jocelyn Cruz", nullptr, nullptr);
 
     if (nullptr == window)
     {
@@ -108,8 +111,13 @@ int main()
 
 
     // Load models
-    Model red_dog((char*)"Models/RedDog.obj");
+    Model dog((char*)"Models/RedDog.obj");
+    Model wc((char*)"Models/WC.obj");
+    Model mesita((char*)"Models/round table Ultimate(free Final).obj");
     Model planta((char*)"Models/planta.obj");
+    Model periodico((char*)"Models/Newspaper.obj");
+    Model luna((char*)"Models/luna.obj");
+    Model sol((char*)"Models/sol.obj");
     glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
 
 
@@ -213,10 +221,41 @@ int main()
         DoMovement();
 
         // Clear the colorbuffer
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        /*glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                
+        glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();*/
+
+        // -------------------------------------------------------------
+        // ANIMACIÓN ORBITAL (SOL Y LUNA OPUESTOS A 180 GRADOS)
+        // -------------------------------------------------------------
+        if (activanim)
+        {
+            tiempo += deltaTime * 0.5f; // velocidad de rotacion
+        }
+
+        // Posición orbital del Sol
+        glm::mat4 sunMat = glm::rotate(glm::mat4(1.0f), tiempo, glm::vec3(0.0f, 0.0f, 1.0f));
+        lightPos = glm::vec3(sunMat * glm::vec4(orbita, 0.0f, 0.0f, 1.0f));
+
+        // Posición orbital de la Luna (opuesta a 180° = pi radianes)
+        glm::mat4 moonMat = glm::rotate(glm::mat4(1.0f), tiempo + glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        light2Pos = glm::vec3(moonMat * glm::vec4(orbita, 0.0f, 0.0f, 1.0f));
+
+        // -------------------------------------------------------------
+        // COLOR DE FONDO (CIELO DE DÍA O DE NOCHE)
+        // -------------------------------------------------------------
+        if (DIA)
+        {
+            glClearColor(0.4f, 0.7f, 0.9f, 1.0f); // Cielo azul claro
+        }
+        else
+        {
+            glClearColor(0.02f, 0.02f, 0.08f, 1.0f); // Noche azul oscura
+        }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        
         glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
@@ -230,17 +269,35 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-        // Luz 1 (Móvil)
+        // Posición de las fuentes luminosas
         glUniform3f(glGetUniformLocation(lightingShader.Program, "light.position"), lightPos.x + movelightPos, lightPos.y + movelightPos, lightPos.z + movelightPos);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.9f, 0.9f, 0.9f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 0.7f, 0.7f, 0.7f);
-
-        // Luz 2 (Fija)
         glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.position"), light2Pos.x, light2Pos.y, light2Pos.z);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.ambient"), 0.3f, 0.3f, 0.3f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.diffuse"), 0.8f, 0.8f, 0.8f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.specular"), 1.0f, 1.0f, 1.0f);
+
+        // Control de activación/desactivación de luces según el ciclo Día/Noche
+        if (DIA)
+        {
+            // Luz 1 (SOL - Tono cálido/amarillo encendido)
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 0.3f, 0.3f, 0.15f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 1.0f, 0.95f, 0.2f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 1.0f, 1.0f, 0.6f);
+
+            // Luz 2 (LUNA - Apagada por completo en 0.0)
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.ambient"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.diffuse"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.specular"), 0.0f, 0.0f, 0.0f);
+        }
+        else
+        {
+            // Luz 1 (SOL - Apagado por completo en 0.0)
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.ambient"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.0f, 0.0f, 0.0f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 0.0f, 0.0f, 0.0f);
+
+            // Luz 2 (LUNA - Tono frío/azul nítido encendido)
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.ambient"), 0.05f, 0.08f, 0.2f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.diffuse"), 0.05f, 0.3f, 1.0f);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, "light2.specular"), 0.4f, 0.6f, 1.0f);
+        }
 
         // Propiedades de material
         glUniform3f(glGetUniformLocation(lightingShader.Program, "material.ambient"), 0.8f, 0.8f, 0.8f);
@@ -248,43 +305,62 @@ int main()
         glUniform3f(glGetUniformLocation(lightingShader.Program, "material.specular"), 0.8f, 0.8f, 0.8f);
         glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 32.0f);
 
-        // Dibujar Red Dog
+        // Dibujar modelos de la habitación
         glm::mat4 model(1.0f);
-        model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        red_dog.Draw(lightingShader);
+        dog.Draw(lightingShader);
 
-        // Dibujar Planta
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, -1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        model = glm::translate(model, glm::vec3(0.63f, -1.3f, -0.3f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        wc.Draw(lightingShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.9f, -0.98f, 1.3f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.7f, 0.2f));
+        glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        mesita.Draw(lightingShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.9f, 0.0f, 1.3f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         planta.Draw(lightingShader);
 
-        // ==========================================
-        // 2. DIBUJAR CUBOS DE LÁMPARAS (Lampshader)
-        // ==========================================
-        lampshader.Use();
-        glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-
-        glBindVertexArray(VAO);
-
-        // Lámpara 1 (Cubo)
         model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos + movelightPos);
-        model = glm::scale(model, glm::vec3(0.25f));
-        glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::translate(model, glm::vec3(0.0f, -0.98f, 1.0f));
+        model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
+        glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        periodico.Draw(lightingShader);
 
-        // Lámpara 2 (Cubo)
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, light2Pos);
-        model = glm::scale(model, glm::vec3(0.25f));
-        glUniformMatrix4fv(glGetUniformLocation(lampshader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // ==========================================
+        // 2. DIBUJAR SOL Y LUNA
+        // ==========================================
+        shader.Use();
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-        glBindVertexArray(0);
+        if (DIA)
+        {
+            // Sol orbitando en el cielo
+            model = glm::mat4(1.0f);
+            model = glm::rotate(model, tiempo, glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::translate(model, glm::vec3(orbita, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(0.7f));
+            glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            sol.Draw(shader);
+        }
+        else
+        {
+            // Luna orbitando al lado opuesto (180 grados)
+            model = glm::mat4(1.0f);
+            model = glm::rotate(model, tiempo + glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::translate(model, glm::vec3(orbita, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(0.4f));
+            glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            luna.Draw(shader);
+        }
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -349,6 +425,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
             keys[key] = false;
         }
     }
+
+    if (key == GLFW_KEY_N && action == GLFW_PRESS) DIA = false;          // Tecla N: Modo Noche
+    if (key == GLFW_KEY_M && action == GLFW_PRESS) DIA = true;           // Tecla M: Modo Día
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) activanim = !activanim; // Tecla P: Iniciar / Pausar rotación
 
     if (keys[GLFW_KEY_O])
     {
