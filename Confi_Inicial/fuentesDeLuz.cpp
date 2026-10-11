@@ -159,7 +159,7 @@ int main()
 	Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 	
-	Model fantasma((char*)"Models/Ghost_by_Akairojhon.obj");
+	Model fantasmita((char*)"Models/Ghost_by_Akairojhon.obj");
 	Model Piso((char*)"Models/piso.obj");
 
 
@@ -319,7 +319,7 @@ int main()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-	    fantasma.Draw(lightingShader);
+	    fantasmita.Draw(lightingShader);
 		glDisable(GL_BLEND);  //Desactiva el canal alfa 
 		glBindVertexArray(0);
 	
