@@ -160,9 +160,6 @@ int main()
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 	
 	Model fantasmita((char*)"Models/Ghost_by_Akairojhon.obj");
-	Model Piso((char*)"Models/piso.obj");
-
-
 
 	// First, set the container's VAO (and VBO)
 	GLuint VBO, VAO;
@@ -207,7 +204,6 @@ int main()
 
 		
 		
-		//Load Model
 	
 
 		// Use cooresponding shader when setting uniforms/drawing objects
