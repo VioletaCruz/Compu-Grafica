@@ -308,7 +308,7 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, traslBall, 0.0f));
         // rotacion
 		model = glm::rotate(model, glm::radians(rotBall), glm::vec3(0.0f, 1.0f, 0.0f));
-		
+	
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	    Ball.Draw(lightingShader); 
 		glDisable(GL_BLEND);  //Desactiva el canal alfa 
