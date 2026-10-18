@@ -407,7 +407,6 @@ int main()
 		glBindVertexArray(0);
 
 
-
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
 	}
