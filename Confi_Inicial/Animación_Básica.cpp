@@ -1,6 +1,6 @@
-// Previo #10 
+// Practica #10 
 // Cruz Herrera Jocelyn Violeta
-// Fecha de entrega: 18 de octubre del 2026
+// Fecha de entrega: 20 de octubre del 2026
 // No. cuenta: 320202238 
 
 #include <iostream>
@@ -106,12 +106,21 @@ float vertices[] = {
 glm::vec3 Light1 = glm::vec3(0);
 
 //Anim
-float rotBall = 0;
 bool AnimBall = false;
 
-float traslBall = 0.5f;
+float rotBall = 180.0f;
+float radioBall = 1.0f;
+float traslBall = 1.7f;
+
 bool AnimBall2 = false;
 bool tope = true;
+
+float rotDog = 0;
+float radioDog = 1.0f;
+float traslDog = 0.0f;
+
+bool AnimBall3 = false;
+bool tope2 = true;
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -129,7 +138,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);*/
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Previo #10 Jocelyn Cruz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica #10 Jocelyn Cruz", nullptr, nullptr);
 
 	if (nullptr == window)
 	{
@@ -297,7 +306,11 @@ int main()
 		model = glm::mat4(1);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+		model = glm::rotate(model, glm::radians(rotDog), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(radioDog, traslDog, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Dog.Draw(lightingShader);
+		glBindVertexArray(0);
 
 		model = glm::mat4(1);
 		glEnable(GL_BLEND);//Avtiva la funcionalidad para trabajar el canal alfa
@@ -305,6 +318,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
 		model = glm::rotate(model, glm::radians(rotBall), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(radioBall, traslBall, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	    Ball.Draw(lightingShader); 
 		glDisable(GL_BLEND);  //Desactiva el canal alfa 
@@ -454,42 +468,52 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 	{
 		AnimBall2 = !AnimBall2;
 	}
+	if (keys[GLFW_KEY_B])
+	{
+		AnimBall3 = !AnimBall3;
+	}
 }
 void Animation() {
 	if (AnimBall)
 	{
-		rotBall += 0.2f;
-		printf("%f", rotBall);
-	}
-	else
-	{
-		//rotBall = 0.0f;
+		rotBall += 0.02f;
+		//printf("%f", rotBall);
 	}
 	if (AnimBall2)
 	{
-		float speed = 0.0005f;
-		if (tope)
+		float speed = 0.7f * deltaTime;
+
+		// Cuando tope2 es true, el perro sube y la pelota baja
+		if (tope2)
 		{
-			// Sube hacia la fuente de luz (altura 2.0f)
-			traslBall += speed;
-			if (traslBall >= 1.7f)
+			traslDog += speed;
+			traslBall -= speed;
+
+			if (traslDog >= 1.0f)
 			{
-				traslBall = 1.7f;
-				tope = false; // Cambia de direccion para bajar
+				traslDog = 1.0f;
+				traslBall = 0.7f;
+				tope2 = false; // Cambian de dirección
 			}
 		}
-		else
+		else // El perro baja y la pelota sube
 		{
-			// Baja hacia la nariz del perro (altura 0.5f)
-			traslBall -= speed;
-			if (traslBall <= 0.0f)
+			traslDog -= speed;
+			traslBall += speed;
+
+			if (traslDog <= 0.0f)
 			{
-				traslBall = 0.0f;
-				tope = true; // Cambia de dirección para subir
+				traslDog = 0.0f;
+				traslBall = 1.7f;
+				tope2 = true; // Vuelven a coincidir en el siguiente viaje
 			}
 		}
 	}
 
+	if (AnimBall3)
+	{
+		rotDog -= 0.02f;
+	}
 }
 
 void MouseCallback(GLFWwindow *window, double xPos, double yPos)
