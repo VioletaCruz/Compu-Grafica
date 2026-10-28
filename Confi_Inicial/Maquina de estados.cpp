@@ -1,4 +1,4 @@
-// Previo #11
+// Practica #11
 // Cruz Herrera Jocelyn Violeta
 // Fecha de entrega: 26 de octubre
 // No. cuenta: 320202238 
@@ -117,6 +117,9 @@ float tail = 0.0f;
 glm::vec3 dogPos (0.0f,0.0f,0.0f);
 float dogRot = 0.0f;
 bool step = false;
+float rotStep = 0.0f; // controla el incremento de los angulos 
+float rotHead = 0.0f; // rota la cabeza sobre el eje y
+int dogStage = 0; // controla la etapa exacta del recorrido (0 a 10)
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -134,7 +137,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);*/
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Previo #11 Jocelyn Cruz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica #11 Jocelyn Cruz", nullptr, nullptr);
 
 	if (nullptr == window)
 	{
@@ -317,6 +320,7 @@ int main()
 		model = modelTemp;
 		model = glm::translate(model, glm::vec3(0.0f, 0.093f, 0.208f));
 		model = glm::rotate(model, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, glm::radians(rotHead), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		HeadDog.Draw(lightingShader);
 		//Tail 
@@ -505,7 +509,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 	if (keys[GLFW_KEY_B])
 	{
 		dogAnim = 1;
-
+		dogStage = 0;
 	}
 	
 }
@@ -514,36 +518,223 @@ void Animation() {
 	{
 		rotBall += 0.4f;
 	}
-	
+
 	if (AnimDog)
 	{
 		rotDog -= 0.6f;
-		//printf("%f", rotBall);
 	}
-	
-	if (dogPos.z <= 2.35) {
-		if (dogAnim == 1) {		//Walk Animation
-			if (!step) {		//State 1
-				RLegs += 0.03f;
-				FLegs += 0.03f;
-				head += 0.03f;
-				tail += 0.03f;
-				if (RLegs > 15.0f)	//Condicion
-					step = true;
-			}
-			else {
-				RLegs -= 0.03f;
-				FLegs -= 0.03f;
-				head -= 0.03f;
-				tail -= 0.03f;
-				if (RLegs < -15.0f)	//Condicion
-					step = false;
-			}
-			dogPos.z += 0.0001;
+
+	// Si la animación no está activa, no hace nada
+	if (dogAnim == 0) return;
+
+	// ETAPA 0: Camina hacia adelante en Z (+Z) hasta 2.3f
+	if (dogStage == 0) {
+		if (!step) {
+			RLegs += 0.03f; FLegs += 0.03f; head += 0.03f; tail += 0.03f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.03f; FLegs -= 0.03f; head -= 0.03f; tail -= 0.03f;
+			if (RLegs < -15.0f) step = false;
+		}
+		dogPos.z += 0.0007f;
+
+		if (dogPos.z >= 2.3f) {
+			dogPos.z = 2.3f;
+			dogStage = 1; // Pasa a girar a la derecha
 		}
 	}
-	else {
-		dogAnim = 0;
+	// ETAPA 1: Primer giro a la derecha (hasta -90°)
+	else if (dogStage == 1) {
+		dogRot -= 0.1f;
+		if (rotHead > -25.0f) rotHead -= 0.05f;
+
+		if (!step) {
+			RLegs += 0.01f; FLegs += 0.01f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.01f; FLegs -= 0.01f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		if (dogRot <= -90.0f) {
+			dogRot = -90.0f;
+			dogStage = 2; // Pasa a caminar en X
+		}
+	}
+	// ETAPA 2: Camina sobre X hacia -2.3f
+	else if (dogStage == 2) {
+		if (rotHead < 0.0f) rotHead += 0.02f;
+
+		if (!step) {
+			RLegs += 0.03f; FLegs += 0.03f; head += 0.03f; tail += 0.03f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.03f; FLegs -= 0.03f; head -= 0.03f; tail -= 0.03f;
+			if (RLegs < -15.0f) step = false;
+		}
+		dogPos.x -= 0.0007f;
+
+		if (dogPos.x <= -2.3f) {
+			dogPos.x = -2.3f;
+			dogStage = 3; // Pasa al segundo giro
+		}
+	}
+	// ETAPA 3: Segundo giro a la derecha (hasta -180°)
+	else if (dogStage == 3) {
+		dogRot -= 0.1f;
+		if (rotHead > -25.0f) rotHead -= 0.05f;
+
+		if (!step) {
+			RLegs += 0.01f; FLegs += 0.01f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.01f; FLegs -= 0.01f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		if (dogRot <= -180.0f) {
+			dogRot = -180.0f;
+			dogStage = 4; // Pasa a caminar en Z de regreso
+		}
+	}
+	// ETAPA 4: Camina sobre Z hacia -2.3f
+	else if (dogStage == 4) {
+		if (rotHead < 0.0f) rotHead += 0.02f;
+
+		if (!step) {
+			RLegs += 0.03f; FLegs += 0.03f; head += 0.03f; tail += 0.03f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.03f; FLegs -= 0.03f; head -= 0.03f; tail -= 0.03f;
+			if (RLegs < -15.0f) step = false;
+		}
+		dogPos.z -= 0.0007f;
+
+		if (dogPos.z <= -2.3f) {
+			dogPos.z = -2.3f;
+			dogStage = 5; // Pasa al tercer giro
+		}
+	}
+	// ETAPA 5: Tercer giro a la derecha (hasta -270°)
+	else if (dogStage == 5) {
+		dogRot -= 0.1f;
+		if (rotHead > -25.0f) rotHead -= 0.05f;
+
+		if (!step) {
+			RLegs += 0.01f; FLegs += 0.01f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.01f; FLegs -= 0.01f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		if (dogRot <= -270.0f) {
+			dogRot = -270.0f;
+			dogStage = 6; // Pasa a caminar en X al otro extremo
+		}
+	}
+	// ETAPA 6: Camina sobre X hasta la esquina opuesta (+2.3f)
+	else if (dogStage == 6) {
+		if (rotHead < 0.0f) rotHead += 0.02f;
+
+		if (!step) {
+			RLegs += 0.03f; FLegs += 0.03f; head += 0.03f; tail += 0.03f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.03f; FLegs -= 0.03f; head -= 0.03f; tail -= 0.03f;
+			if (RLegs < -15.0f) step = false;
+		}
+		dogPos.x += 0.0007f;
+
+		if (dogPos.x >= 2.3f) {
+			dogPos.x = 2.3f;
+			dogStage = 7; // Pasa al penúltimo giro
+		}
+	}
+	// ETAPA 7: Penúltimo giro: 90° de la esquina + 45° adicionales (hasta -405°)
+	else if (dogStage == 7) {
+		dogRot -= 0.1f;
+		if (rotHead > -25.0f) rotHead -= 0.05f;
+
+		if (!step) {
+			RLegs += 0.01f; FLegs += 0.01f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.01f; FLegs -= 0.01f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		if (dogRot <= -405.0f) {
+			dogRot = -405.0f;
+			dogStage = 8; // Pasa al tramo diagonal
+		}
+	}
+	// ETAPA 8: Camina en diagonal directo al origen (0.0, 0.0)
+	else if (dogStage == 8) {
+		if (rotHead < 0.0f) rotHead += 0.02f;
+
+		if (!step) {
+			RLegs += 0.03f; FLegs += 0.03f; head += 0.03f; tail += 0.03f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.03f; FLegs -= 0.03f; head -= 0.03f; tail -= 0.03f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		// Avanza simultáneamente en X y Z hacia 0
+		if (dogPos.x > 0.0f) dogPos.x -= 0.0007f;
+		if (dogPos.z < 0.0f) dogPos.z += 0.0007f;
+
+		// Si ambos ejes cruzaron o llegaron a 0, termina el viaje
+		if (dogPos.x <= 0.0f && dogPos.z >= 0.0f) {
+			dogPos.x = 0.0f; // Fija el centro exacto
+			dogPos.z = 0.0f;
+			dogStage = 9;    // Pasa a deshacer los 45°
+		}
+	}
+	// ETAPA 9: En el centro exacto, regresa los 45° girando a la IZQUIERDA
+	else if (dogStage == 9) {
+		// Posición fija en el centro para que no se desplace
+		dogPos.x = 0.0f;
+		dogPos.z = 0.0f;
+
+		dogRot += 0.1f; // Gira el cuerpo hacia la izquierda (hacia -360°)
+
+		// Gira la cabeza hacia la izquierda (lado del giro) hasta +25°
+		if (rotHead < 25.0f) {
+			rotHead += 0.1f;
+		}
+
+		// Movimiento de patas durante el giro
+		if (!step) {
+			RLegs += 0.01f; FLegs += 0.01f;
+			if (RLegs > 15.0f) step = true;
+		}
+		else {
+			RLegs -= 0.01f; FLegs -= 0.01f;
+			if (RLegs < -15.0f) step = false;
+		}
+
+		// Cuando termina de girar el cuerpo (-360° equivale a 0°)
+		if (dogRot >= -360.0f) {
+			dogRot = 0.0f;
+			rotHead = 0.0f;  // Vuelve a centrar la cabeza al frente
+			head = 0.0f;
+			tail = 0.0f;
+			RLegs = 0.0f;    // Detiene las patas rectas
+			FLegs = 0.0f;
+			dogAnim = 0;     // Apaga la animación
+			dogStage = 10;   // Finaliza el recorrido
+		}
 	}
 }
 
