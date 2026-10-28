@@ -104,6 +104,7 @@ float vertices[] = {
 
 
 glm::vec3 Light1 = glm::vec3(0);
+
 //Anim
 float rotBall = 0.0f;
 bool AnimBall = false;
