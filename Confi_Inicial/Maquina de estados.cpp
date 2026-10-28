@@ -1,6 +1,6 @@
 // Practica #11
 // Cruz Herrera Jocelyn Violeta
-// Fecha de entrega: 26 de octubre
+// Fecha de entrega: 27 de octubre
 // No. cuenta: 320202238 
 
 #include <iostream>
