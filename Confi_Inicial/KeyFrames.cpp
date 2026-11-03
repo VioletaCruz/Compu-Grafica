@@ -319,7 +319,6 @@ int main()
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.difuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.specular"), 1);
 
-	
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
 
 	// Game loop
@@ -697,7 +696,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 	{
 		if (play == false && (FrameIndex > 1))
 		{
-
 			resetElements();
 			//First Interpolation				
 			interpolation();
@@ -710,23 +708,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 		{
 			play = false;
 		}
-
-	}
-
-	if (keys[GLFW_KEY_K])
-	{
-		if (FrameIndex < MAX_FRAMES)
-		{
-			saveFrame();
-		}
-
-	}
-
-
-
-	if (GLFW_KEY_ESCAPE == key && GLFW_PRESS == action)
-	{
-		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
 	if (key >= 0 && key < 1024)
