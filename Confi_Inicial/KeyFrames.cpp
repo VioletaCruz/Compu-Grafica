@@ -1,6 +1,6 @@
-// Previo #12
+// Practica #12
 // Cruz Herrera Jocelyn Violeta
-// Fecha de entrega: 01 de noviembre del 2026
+// Fecha de entrega: 03 de noviembre del 2026
 // No. cuenta: 320202238 
 
 #include <iostream>
@@ -29,6 +29,8 @@
 #include "Camera.h"
 #include "Model.h"
 
+// lectura de archivos
+#include <fstream>
 
 // Function prototypes
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -104,6 +106,7 @@ float vertices[] = {
 
 
 glm::vec3 Light1 = glm::vec3(0);
+
 //Anim
 float rotBall = 0.0f;
 float rotDog = 0.0f;
@@ -115,10 +118,12 @@ float tail = 0.0f;
 float rotDogX = 0.0f;
 float rotLeg = 0.0f;
 
+float rotDogZ = 0.0f;
+
 //KeyFrames
 float dogPosX , dogPosY , dogPosZ  ;
 
-#define MAX_FRAMES 9
+#define MAX_FRAMES 90
 int i_max_steps = 190;
 int i_curr_steps = 0;
 typedef struct _frame {
@@ -144,6 +149,10 @@ typedef struct _frame {
 	float rotLeg;
 	float rotLegInc;
 
+	float rotDogZ;
+	float rotDogZInc;
+
+
 }FRAME;
 
 FRAME KeyFrame[MAX_FRAMES];
@@ -168,6 +177,8 @@ void saveFrame(void)
 	KeyFrame[FrameIndex].rotDogX = rotDogX;
 	KeyFrame[FrameIndex].rotLeg = rotLeg;
 
+	KeyFrame[FrameIndex].rotDogZ = rotDogZ;
+
 	FrameIndex++;
 }
 
@@ -182,6 +193,8 @@ void resetElements(void)
 	RLegs = KeyFrame[0].RLegs;
 	rotDogX = KeyFrame[0].rotDogX;
 	rotLeg = KeyFrame[0].rotLeg;
+
+	rotDogZ = KeyFrame[0].rotDogZ;
 
 	rotDog = KeyFrame[0].rotDog;
 
@@ -199,11 +212,77 @@ void interpolation(void)
 	KeyFrame[playIndex].rotDogXInc = (KeyFrame[playIndex + 1].rotDogX - KeyFrame[playIndex].rotDogX) / i_max_steps;
 	KeyFrame[playIndex].rotLegInc = (KeyFrame[playIndex + 1].rotLeg - KeyFrame[playIndex].rotLeg) / i_max_steps;
 
+	KeyFrame[playIndex].rotDogZInc = (KeyFrame[playIndex + 1].rotDogZ - KeyFrame[playIndex].rotDogZ) / i_max_steps;
+
 	KeyFrame[playIndex].rotDogInc = (KeyFrame[playIndex + 1].rotDog - KeyFrame[playIndex].rotDog) / i_max_steps;
 
 }
 
+// Generacion del archivo con los keyframe guardados
+void SaveKeyFrame(void)
+{
+	std::ofstream file("Animacion_de_perrito.txt", std::ios::out);
+	if (file.is_open())
+	{
+		// 1. Guardar la cantidad total de frames capturados
+		file << FrameIndex << "\n";
 
+		// 2. Guardar cada una de las variables de rotación y traslación
+		for (int i = 0; i < FrameIndex; i++)
+		{
+			file << KeyFrame[i].dogPosX << " "
+				<< KeyFrame[i].dogPosY << " "
+				<< KeyFrame[i].dogPosZ << " "
+				<< KeyFrame[i].rotDog << " "
+				<< KeyFrame[i].rotDogX << " "
+				<< KeyFrame[i].rotDogZ << " "
+				<< KeyFrame[i].head << " "
+				<< KeyFrame[i].tail << " "
+				<< KeyFrame[i].FLegs << " "
+				<< KeyFrame[i].RLegs << " "
+				<< KeyFrame[i].rotLeg << "\n";
+		}
+		file.close();
+		std::cout << ">>> Se guardaron " << FrameIndex << " KeyFrames exitosamente.\n";
+	}
+	else
+	{
+		std::cout << "Error: No se pudo abrir el archivo para guardar.\n";
+	}
+}
+
+// Carga de los frames previamente guardados en el archivo
+void LoadKeyFrame(void)
+{
+	std::ifstream file("Animacion_de_perrito.txt", std::ios::in);
+	if (file.is_open())
+	{
+		file >> FrameIndex;
+		if (FrameIndex > MAX_FRAMES)
+			FrameIndex = MAX_FRAMES;
+
+		for (int i = 0; i < FrameIndex; i++)
+		{
+			file >> KeyFrame[i].dogPosX
+				>> KeyFrame[i].dogPosY
+				>> KeyFrame[i].dogPosZ
+				>> KeyFrame[i].rotDog
+				>> KeyFrame[i].rotDogX
+				>> KeyFrame[i].rotDogZ
+				>> KeyFrame[i].head
+				>> KeyFrame[i].tail
+				>> KeyFrame[i].FLegs
+				>> KeyFrame[i].RLegs
+				>> KeyFrame[i].rotLeg;
+		}
+		file.close();
+		std::cout << ">>> Se cargaron " << FrameIndex << " KeyFrames del archivo.\n";
+	}
+	else
+	{
+		std::cout << "Aviso: No se encontro archivo previo de animacion.\n";
+	}
+}
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -291,8 +370,13 @@ int main()
 		KeyFrame[i].FLegsInc = 0;
 		KeyFrame[i].RLegs = 0;
 		KeyFrame[i].RLegsInc = 0;
-		KeyFrame[i].rotDogInc = 0;
+		KeyFrame[i].rotDogX = 0;
+		KeyFrame[i].rotDogXInc = 0;
+		KeyFrame[i].rotLeg = 0;
 		KeyFrame[i].rotLegInc = 0;
+
+		KeyFrame[i].rotDogZ = 0;
+		KeyFrame[i].rotDogZInc = 0;
 	}
 
 
@@ -320,6 +404,9 @@ int main()
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.specular"), 1);
 
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
+
+	// Carga los KeyFrames guardados previamente
+	LoadKeyFrame();
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -424,9 +511,10 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 		//Body
-		modelTemp= model = glm::translate(model, glm::vec3(dogPosX,dogPosY,dogPosZ));
-		modelTemp= model = glm::rotate(model, glm::radians(rotDog), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelTemp= model = glm::rotate(model, glm::radians(rotDogX), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelTemp = model = glm::translate(model, glm::vec3(dogPosX,dogPosY,dogPosZ));
+		modelTemp = model = glm::rotate(model, glm::radians(rotDog), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelTemp = model = glm::rotate(model, glm::radians(rotDogX), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelTemp = model = glm::rotate(model, glm::radians(rotDogZ), glm::vec3(0.0f, 0.0f, 1.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		DogBody.Draw(lightingShader);
 		//Head
@@ -610,6 +698,19 @@ void DoMovement()
 		rotLeg -= 0.05f;
 
 	}
+
+	if (keys[GLFW_KEY_B])
+	{
+
+		rotDogZ += 0.05f;
+
+	}
+	if (keys[GLFW_KEY_N])
+	{
+
+		rotDogZ -= 0.05f;
+
+	}
 			
 	if (keys[GLFW_KEY_H])
 	{
@@ -689,27 +790,9 @@ void DoMovement()
 }
 
 // Is called whenever a key is pressed/released via GLFW
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode)
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-
-	if (keys[GLFW_KEY_L])
-	{
-		if (play == false && (FrameIndex > 1))
-		{
-			resetElements();
-			//First Interpolation				
-			interpolation();
-
-			play = true;
-			playIndex = 0;
-			i_curr_steps = 0;
-		}
-		else
-		{
-			play = false;
-		}
-	}
-
+	// Manejo del estado global de teclas para DoMovement()
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
@@ -722,22 +805,64 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 		}
 	}
 
-	if (keys[GLFW_KEY_SPACE])
+	if (action == GLFW_PRESS)
 	{
-		active = !active;
-		if (active)
+		// Guardar frame actual con 'K'
+		if (keys[GLFW_KEY_K])
 		{
-			Light1 = glm::vec3(0.2f, 0.8f, 1.0f);
-			
+			if (FrameIndex < MAX_FRAMES)
+			{
+				saveFrame();
+			}
 		}
-		else
+
+		// Reproducir / pausar animación con 'L'
+		if (keys[GLFW_KEY_L])
 		{
-			Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
+			if (play == false && (FrameIndex > 1))
+			{
+				resetElements();
+				//First Interpolation				
+				interpolation();
+
+				play = true;
+				playIndex = 0;
+				i_curr_steps = 0;
+			}
+			else
+			{
+				play = false;
+			}
+		}
+
+		// Guardar la secuencia completa a archivo .txt con 'P' (o tecla a elegir)
+		if (key == GLFW_KEY_M)
+		{
+			SaveKeyFrame();
+		}
+
+		// Alternar luz con ESPACIO
+		if (keys[GLFW_KEY_SPACE])
+		{
+			active = !active;
+			if (active)
+			{
+				Light1 = glm::vec3(0.2f, 0.8f, 1.0f);
+
+			}
+			else
+			{
+				Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
+			}
+		}
+
+		if (GLFW_KEY_ESCAPE == key && GLFW_PRESS == action)
+		{
+			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 	}
-	
-	
 }
+
 void Animation() {
 
 	if (play)
@@ -770,6 +895,8 @@ void Animation() {
 			RLegs += KeyFrame[playIndex].RLegsInc;
 			rotDogX += KeyFrame[playIndex].rotDogXInc;
 			rotLeg += KeyFrame[playIndex].rotLegInc;
+
+			rotDogZ += KeyFrame[playIndex].rotDogZInc;
 
 			rotDog += KeyFrame[playIndex].rotDogInc;
 
