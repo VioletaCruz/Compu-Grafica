@@ -152,7 +152,6 @@ typedef struct _frame {
 	float rotDogZ;
 	float rotDogZInc;
 
-
 }FRAME;
 
 FRAME KeyFrame[MAX_FRAMES];
@@ -796,14 +795,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
-		{
 			keys[key] = true;
-		}
 		else if (action == GLFW_RELEASE)
-		{
 			keys[key] = false;
 		}
-	}
 
 	if (action == GLFW_PRESS)
 	{
@@ -822,9 +817,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			if (play == false && (FrameIndex > 1))
 			{
 				resetElements();
-				//First Interpolation				
 				interpolation();
-
 				play = true;
 				playIndex = 0;
 				i_curr_steps = 0;
@@ -833,12 +826,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 			{
 				play = false;
 			}
-		}
-
-		// Guardar la secuencia completa a archivo .txt con 'P' (o tecla a elegir)
-		if (key == GLFW_KEY_M)
-		{
-			SaveKeyFrame();
 		}
 
 		// Alternar luz con ESPACIO
