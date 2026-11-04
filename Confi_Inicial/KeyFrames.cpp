@@ -276,6 +276,23 @@ void LoadKeyFrame(void)
 		}
 		file.close();
 		std::cout << ">>> Se cargaron " << FrameIndex << " KeyFrames del archivo.\n";
+
+		// Sincronizar el perro con el ultimo frame cargado si existen frames
+		if (FrameIndex > 0)
+		{
+			int last = FrameIndex - 1;
+			dogPosX = KeyFrame[last].dogPosX;
+			dogPosY = KeyFrame[last].dogPosY;
+			dogPosZ = KeyFrame[last].dogPosZ;
+			rotDog = KeyFrame[last].rotDog;
+			rotDogX = KeyFrame[last].rotDogX;
+			rotDogZ = KeyFrame[last].rotDogZ;
+			head = KeyFrame[last].head;
+			tail = KeyFrame[last].tail;
+			FLegs = KeyFrame[last].FLegs;
+			RLegs = KeyFrame[last].RLegs;
+			rotLeg = KeyFrame[last].rotLeg;
+		}
 	}
 	else
 	{
@@ -791,28 +808,39 @@ void DoMovement()
 // Is called whenever a key is pressed/released via GLFW
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	// Manejo del estado global de teclas para DoMovement()
+	// 1. Estado continuo para DoMovement()
 	if (key >= 0 && key < 1024)
 	{
 		if (action == GLFW_PRESS)
 			keys[key] = true;
 		else if (action == GLFW_RELEASE)
 			keys[key] = false;
-		}
+	}
 
+	// 2. Acciones de pulsación única
 	if (action == GLFW_PRESS)
 	{
-		// Guardar frame actual con 'K'
-		if (keys[GLFW_KEY_K])
+		// Guardar frame actual en memoria con K
+		if (key == GLFW_KEY_K)
 		{
 			if (FrameIndex < MAX_FRAMES)
 			{
 				saveFrame();
 			}
+			else
+			{
+				std::cout << "Limite de frames alcanzado (" << MAX_FRAMES << ")\n";
+			}
 		}
 
-		// Reproducir / pausar animación con 'L'
-		if (keys[GLFW_KEY_L])
+		// Sobrescribir el archivo .txt con M
+		if (key == GLFW_KEY_M)
+		{
+			SaveKeyFrame();
+		}
+
+		// Reproducir / pausar animación con L
+		if (key == GLFW_KEY_L)
 		{
 			if (play == false && (FrameIndex > 1))
 			{
@@ -829,21 +857,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 
 		// Alternar luz con ESPACIO
-		if (keys[GLFW_KEY_SPACE])
+		if (key == GLFW_KEY_SPACE)
 		{
 			active = !active;
-			if (active)
-			{
-				Light1 = glm::vec3(0.2f, 0.8f, 1.0f);
-
-			}
-			else
-			{
-				Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
-			}
+			Light1 = active ? glm::vec3(0.2f, 0.8f, 1.0f) : glm::vec3(0.0f);
 		}
 
-		if (GLFW_KEY_ESCAPE == key && GLFW_PRESS == action)
+		if (key == GLFW_KEY_ESCAPE)
 		{
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
